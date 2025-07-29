@@ -8,7 +8,6 @@ class Settings(BaseSettings):
     database: str = "mysql"
     charset: str = "utf8mb4"
 
-
     @property
     def url(self) -> str:
         return f"mysql+aiomysql://{self.user}:{self.password}@{self.host}:{self.port}/{self.database}?charset={self.charset}"

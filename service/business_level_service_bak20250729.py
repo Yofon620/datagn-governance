@@ -30,7 +30,7 @@ class BusinessLevelService:
             'statistic_cycle', 'biz_name', 'level'
         ]
 
-        # 字段列表
+        # 阶段列清单
         stability_cols = [
             'stability_scan', 'stability_clean', 'stability_convert',
             'stability_warehouse', 'stability_check'
@@ -61,28 +61,28 @@ class BusinessLevelService:
             .reset_index()
         )
         print(f"笛卡尔积展开结果:{len(group_result)}")
-        # 3) 第一层-->result:用以计算后续质量表用
+        # 3) 复制一份 object_type=2 的数据（周/月）
+        type2_df = group_result.assign(object_type='2')
+        # 4) 纵向合并
+        final_tmp = pd.concat([group_result, type2_df], ignore_index=True)
+
+        # 6) 去重 & 主键
         base_ms = int(time.time() * 1000)
-        level1 = (
-            group_result
-            .assign(interface_business_level_id=lambda x: (base_ms + np.arange(len(x))).astype(str))
-            .drop_duplicates()
+        final = (
+            final_tmp
+            .assign(interface_quality_scale_id=lambda x: (base_ms + np.arange(len(x))).astype(str))
+            .drop_duplicates(subset=[
+                'interface_id', 'department', 'create_time',
+                'statistic_cycle', 'biz_name', 'level', 'object_type'
+            ])
         )
-
-        # level1.to_csv(f"data_fabric_interface_business_level_tmp_{date_str}.csv", index=False, encoding='utf_8_sig')
-        level1.to_csv(f"data_fabric_interface_business_level_tmp.csv", index=False, encoding='utf_8_sig')
-        await self.dao_sql.write_data(level1, "data_fabric_interface_business_level_tmp")
-        print(f"业务级一次数据处理已完成 {len(level1)},用于下一阶段质量规模表用")
-
+        final.to_csv(f"data_fabric_interface_business_level_tmp_{date_str}.csv", index=False, encoding='utf_8_sig')
+        await self.dao_sql.write_data(final, "data_fabric_interface_business_level_tmp")
+        print(f"业务级一次数据处理已完成 {len(final)},用于下一阶段质量规模表用")
         # ===== 二次聚合：按 department / create_time / biz_name =====
-        # level2：业务级（笛卡尔补全 + 聚合）
-        cart = (
-            df[['department', 'create_time', 'statistic_cycle', 'object_type']].drop_duplicates()
-            .merge(df[['biz_name', 'level']].drop_duplicates(), how='cross')
-        )
-
-        agg2 = (
-            level1.groupby(['department', 'create_time', 'statistic_cycle', 'object_type', 'biz_name', 'level'])
+        final_second = (
+            final
+            .groupby(['department', 'create_time', 'biz_name', 'statistic_cycle', 'object_type', 'level'], as_index=False)
             .agg(
                 stability=('stability', pct_mean),
                 timeliness=('timeliness', pct_mean),
@@ -92,21 +92,15 @@ class BusinessLevelService:
                 uniqueness=('uniqueness', pct_mean),
                 normativity=('normativity', pct_mean)
             )
-            .reset_index()
-        )
-
-        level2 = (
-            cart.merge(agg2, how='left')
-                .fillna('-')
-                .assign(
+                # 二次聚合没有 interface_id/level，补空
+            .assign(
                 interface_business_level_id=lambda x: (
                         int(time.time() * 1000) + np.arange(len(x))
                 ).astype(str)
             )
         )
 
-        # level2.to_csv(f"data_fabric_interface_business_{date_str}.csv", index=False, encoding='utf_8_sig')
-        level2.to_csv(f"data_fabric_interface_business.csv", index=False, encoding='utf_8_sig')
-        print(f"最终两层聚合完成，共 {len(level2)} 条")
+        final_second.to_csv(f"data_fabric_interface_business_level_{date_str}.csv", index=False, encoding='utf_8_sig')
+        print(f"最终两层聚合完成，共 {len(final_second)} 条")
 
-        return level2
+        return final_second

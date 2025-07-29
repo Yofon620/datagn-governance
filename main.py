@@ -33,6 +33,7 @@ quality_service    → data_fabric_interface_quality.csv（stability_ratio / tim
 scale_service      → data_fabric_interface_scale.csv   ---驾驶舱接口规模表
 """
 
+
 async def run_detail(date_str: str = datetime.now().strftime('%Y-%m-%d')):
     """
     :param date_str: 数据日期
@@ -44,7 +45,6 @@ async def run_detail(date_str: str = datetime.now().strftime('%Y-%m-%d')):
     await repo.write_detail(df)
     print("✅ 接口明细已写入")
     await repo.engine.dispose()
-
 async def run_metric(date_str: str = datetime.now().strftime('%Y%m%d')):
     """
     :param date_str: 数据录入日期，注意：不同于数据日期！
@@ -86,11 +86,11 @@ async def run_scale(date_str: str = datetime.now().strftime('%Y%m%d')):
     await repo.engine.dispose()
 
 async def run_all():
-    # await run_detail('2025-07-22')
-    # await run_metric('20250720')
-    # await run_business_level('20250720')
-    # await run_quality('20250721')
-    await run_scale('20250721')
+    await run_detail('2025-06-28')
+    await run_metric('20250629')
+    await run_business_level('20250629')
+    await run_quality('20250629')
+    # await run_scale('20250728')
 
 if __name__ == "__main__":
     asyncio.run(run_all())

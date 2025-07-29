@@ -61,7 +61,7 @@ class InterfaceService:
                 interface_id=lambda x: x['interface_id'],
                 department=lambda x: x['responsibility_department'],
                 # create_time=datetime.now().strftime('%Y%m%d'),
-                create_time='20250723',
+                create_time=20250629,
                 # statistic_cycle=lambda x: x['collection_cycle'].map({
                 #     '日': 1,
                 #     '周': 2,
@@ -71,7 +71,7 @@ class InterfaceService:
                 # metric_type='-',
                 interface_name=lambda x: x['interface_name'],
                 interface_file_name=lambda x: x['model_name_en'],
-                storage_system=lambda x: x['target_system'],  # 存储系统
+                # storage_system=lambda x: x['pt'],  # 存储系统
                 storage_interface_id=lambda x: x['interface_storage_id'],  # 存储系统接口编号(4位数)
                 biz_name=lambda x: x['importance_level'].map({
                     'P0': '一经', 'P1': '掌经', 'P2': '大音',
@@ -83,7 +83,7 @@ class InterfaceService:
             )
         )[['interface_id', 'department', 'create_time',
            'interface_name', 'interface_file_name',
-           'storage_system', 'storage_interface_id', 'type', 'level',
+           'storage_interface_id', 'type', 'level',
            'protocol_upload_time', 'biz_name']]
 
         print(f"源接口资源表共{len(tmp)}个记录")
@@ -179,6 +179,11 @@ class InterfaceService:
             data_date=date_str,
             interface_id=lambda x: x['interface_id_x'],  # 治理平台的六位数接口编号
             interface_id_op=lambda d: d['interface_id_y'],  # 运维平台的四位数接口号，用于后续匹配
+            storage_system=lambda x: x['pt'].map({
+                '云平台': 'HADOOP',
+                '一经': 'ORACLE',
+                '省经': 'MPP'
+            }).fillna('-'),  # 存储系统
             protocol_field_count=0,  # 协议字段个数
             file_field_count=0,  # 文件字段个数
             file_field_completeness_rate='100%',  # 文件字段完整率
@@ -219,6 +224,6 @@ class InterfaceService:
 
         final = final.drop(columns=['platform_block'])
         print(f"最终右关联数智运维平台业务表后记录数{len(final)}个")
-        final.to_csv('data_fabric_interface_detail.csv', index=False, encoding='utf_8_sig')
+        final.to_csv(f"data_fabric_interface_detail_{date_str}.csv", index=False, encoding='utf_8_sig')
 
         return final

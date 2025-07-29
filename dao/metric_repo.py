@@ -33,6 +33,7 @@ class MetricRepo:
                 )
             )
 
+
     async def load_metric(self, date_str: str) -> pd.DataFrame:
         """
         可选：按日期读取指标表（示例）。

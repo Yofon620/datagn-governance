@@ -14,7 +14,7 @@ class QualityRepo:
         """
         sql = text("""
             SELECT *
-            FROM   data_fabric_interface_business_level
+            FROM   data_fabric_interface_business_level_tmp
             WHERE  create_time IN (:yesterday, :today)
         """)
         async with self.engine.connect() as conn:

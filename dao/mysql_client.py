@@ -18,10 +18,20 @@ class MysqlClient:
     async def read_table(self, table: str) -> pd.DataFrame:
         return await self.read_query(f"SELECT * FROM {table}")
 
-    async def write_df(self, df: pd.DataFrame, table: str, if_exists='append'):
+
+    async def write_data(self, df: pd.DataFrame, table_name: str) -> None:
+        """
+        将指标 DataFrame 异步写入数据表。
+        """
         async with self.engine.begin() as conn:
             await conn.run_sync(
                 lambda sync_conn: df.to_sql(
-                    table, sync_conn, index=False, if_exists=if_exists, chunksize=10000, method='multi'
+                    table_name,
+                    sync_conn,
+                    index=False,
+                    if_exists="append",
+                    method="multi",
+                    chunksize=10000,
+                    dtype=None
                 )
             )
