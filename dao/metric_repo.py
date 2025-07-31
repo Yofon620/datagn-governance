@@ -10,7 +10,8 @@ class MetricRepo:
 
     async def load_data(self, date_str: str) -> pd.DataFrame:
         """数据治理平台-运营驾驶舱明细表"""
-        sql = f"SELECT * FROM data_fabric_interface_detail WHERE create_time='{date_str}'"
+        # sql = f"SELECT * FROM data_fabric_interface_detail WHERE create_time='{date_str}'"
+        sql = f"SELECT * FROM data_fabric_interface_detail"
         async with self.engine.connect() as conn:
             res = await conn.execute(text(sql))
             return pd.DataFrame(res.fetchall(), columns=res.keys())

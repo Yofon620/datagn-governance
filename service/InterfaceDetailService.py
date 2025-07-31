@@ -54,14 +54,14 @@ class InterfaceService:
 
     async def build_detail(self, date_str: str) -> pd.DataFrame:
 
-        meta = await self.repo.load_meta()
+        meta = await self.repo.load_meta_data_interface()
         tmp = (
             meta
             .assign(
                 interface_id=lambda x: x['interface_id'],
                 department=lambda x: x['responsibility_department'],
                 # create_time=datetime.now().strftime('%Y%m%d'),
-                create_time=20250629,
+                create_time=20250628,
                 # statistic_cycle=lambda x: x['collection_cycle'].map({
                 #     '日': 1,
                 #     '周': 2,
@@ -73,10 +73,11 @@ class InterfaceService:
                 interface_file_name=lambda x: x['model_name_en'],
                 # storage_system=lambda x: x['pt'],  # 存储系统
                 storage_interface_id=lambda x: x['interface_storage_id'],  # 存储系统接口编号(4位数)
-                biz_name=lambda x: x['importance_level'].map({
-                    'P0': '一经', 'P1': '掌经', 'P2': '大音',
-                    'P3': '重点监控', 'P4': '移动办公常关注', 'P5': '其他'
-                }),
+                # biz_name=lambda x: x['importance_level'].map({
+                #     'P0': '一经', 'P1': '掌经', 'P2': '大音',
+                #     'P3': '重点监控', 'P4': '移动办公常关注', 'P5': '其他'
+                # }),
+                biz_name=lambda x: x['business_scene'],
                 type=lambda x: x['interface_type'],
                 level=lambda x: x['importance_level'],
                 protocol_upload_time=lambda x: x['interface_data_scheduled_arrival_time']
@@ -224,6 +225,6 @@ class InterfaceService:
 
         final = final.drop(columns=['platform_block'])
         print(f"最终右关联数智运维平台业务表后记录数{len(final)}个")
-        final.to_csv(f"data_fabric_interface_detail_{date_str}.csv", index=False, encoding='utf_8_sig')
+        final.to_csv(f"data_fabric_interface_detail.csv", index=False, encoding='utf_8_sig')
 
         return final

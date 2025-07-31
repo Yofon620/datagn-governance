@@ -8,7 +8,7 @@ class InterfaceRepo:
     def __init__(self):
         self.engine = create_async_engine(settings.url, pool_pre_ping=True)
 
-    async def load_meta(self) -> pd.DataFrame:
+    async def load_meta_data_interface(self) -> pd.DataFrame:
         """数据治理平台-接口资源表"""
         async with self.engine.connect() as conn:
             res = await conn.execute(text("SELECT * FROM data_fabric_meta_data_interface"))

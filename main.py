@@ -5,10 +5,10 @@ from dao.metric_repo import MetricRepo
 from dao.business_repo import BusinessLevelRepo
 from dao.quality_repo import QualityRepo
 from dao.scale_repo import ScaleRepo
-from service.interface_service import InterfaceService
-from service.metric_service import MetricService
-from service.business_level_service import BusinessLevelService
-from service.quality_service import QualityService
+from service.InterfaceDetailService import InterfaceService
+from service.MetricTrendService import MetricTrendService
+from service.BusinessLevelService import BusinessLevelService
+from service.QualityService import QualityService
 from service.scale_service import ScaleService
 
 """
@@ -51,9 +51,9 @@ async def run_metric(date_str: str = datetime.now().strftime('%Y%m%d')):
     :return: dataframe
     """
     repo = MetricRepo()
-    svc = MetricService(repo)
-    metric_df = await svc.build_metric(date_str)
-    await repo.write_metric(metric_df)
+    svc = MetricTrendService(repo)
+    await svc.build_metric(date_str)
+    # await repo.write_metric(metric_df)
     print("✅ 指标已写入")
     await repo.engine.dispose()
 
@@ -86,10 +86,10 @@ async def run_scale(date_str: str = datetime.now().strftime('%Y%m%d')):
     await repo.engine.dispose()
 
 async def run_all():
-    await run_detail('2025-06-28')
-    await run_metric('20250629')
-    await run_business_level('20250629')
-    await run_quality('20250629')
+    await run_detail('2025-07-28')
+    # await run_metric('20250727')
+    # await run_business_level('20250629')
+    # await run_quality('20250629')
     # await run_scale('20250728')
 
 if __name__ == "__main__":
