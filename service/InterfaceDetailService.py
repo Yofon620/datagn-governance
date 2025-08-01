@@ -61,7 +61,7 @@ class InterfaceService:
                 interface_id=lambda x: x['interface_id'],
                 department=lambda x: x['responsibility_department'],
                 # create_time=datetime.now().strftime('%Y%m%d'),
-                create_time=20250628,
+                create_time=20250627,
                 # statistic_cycle=lambda x: x['collection_cycle'].map({
                 #     '日': 1,
                 #     '周': 2,
@@ -77,7 +77,7 @@ class InterfaceService:
                 #     'P0': '一经', 'P1': '掌经', 'P2': '大音',
                 #     'P3': '重点监控', 'P4': '移动办公常关注', 'P5': '其他'
                 # }),
-                biz_name=lambda x: x['business_scene'],
+                biz_name=lambda x: x['business_scene'].str.replace('相关', ''),
                 type=lambda x: x['interface_type'],
                 level=lambda x: x['importance_level'],
                 protocol_upload_time=lambda x: x['interface_data_scheduled_arrival_time']

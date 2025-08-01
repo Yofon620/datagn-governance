@@ -65,7 +65,7 @@ async def run_business_level(date_str: str = datetime.now().strftime('%Y%m%d')):
     repo = BusinessLevelRepo()
     agg = BusinessLevelService(repo)
     business_level_df = await agg.build_aggregate(date_str)
-    await repo.write_data(business_level_df)
+    # await repo.write_data(business_level_df)
     print("✅ 业务级数据已生成")
     await repo.engine.dispose()
 
@@ -86,9 +86,9 @@ async def run_scale(date_str: str = datetime.now().strftime('%Y%m%d')):
     await repo.engine.dispose()
 
 async def run_all():
-    await run_detail('2025-07-28')
-    # await run_metric('20250727')
-    # await run_business_level('20250629')
+    # await run_detail('2025-06-26')
+    await run_metric('20250727')
+    await run_business_level('20250727')
     # await run_quality('20250629')
     # await run_scale('20250728')
 

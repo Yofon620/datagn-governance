@@ -77,65 +77,26 @@ class BusinessLevelService:
         final['interface_business_level_id'] = (
             int(time.time() * 1000) + np.arange(len(final))
         ).astype(str)
-
         final.to_csv('data_fabric_interface_business.csv', index=False, encoding='utf_8_sig')
+        await self.dao_sql.write_data(final, "data_fabric_interface_business")
         print(f"业务级聚合完成 {len(final)} 条")
         return final
 
     # ---------- 并发聚合 ----------
     async def _agg_obj1(self, df: pd.DataFrame) -> pd.DataFrame:
-        # 1. 当天真正聚合结果
-        agg = (
+        return (
             df
-                .groupby(['department', 'create_time', 'statistic_cycle', 'biz_name'], as_index=False)
-                .apply(self._calc, include_groups=False)
-                .reset_index()
-        )
-
-        # 2. 全量骨架：所有 department / create_time / statistic_cycle 与 5 个固定 biz_name 的笛卡尔积
-        full_biz = ['-', '大音', '掌经', '一经']
-        skeleton = (
-            df[['department', 'create_time', 'statistic_cycle']]
-            .drop_duplicates()
-            .assign(key=1)
-            .merge(pd.DataFrame({'biz_name': full_biz, 'key': 1}), on='key')
-            .drop(columns='key')
-        )
-
-        # 3. merge + 填充 + 补列
-        full = (
-            skeleton
-            .merge(agg, on=['department', 'create_time', 'statistic_cycle', 'biz_name'], how='left')
-            .fillna('-')
+            .groupby(['department', 'create_time', 'statistic_cycle', 'biz_name'], as_index=False)
+            .apply(self._calc, include_groups=False)
+            .reset_index()
             .assign(object_type='1')
         )
 
-        return full
     async def _agg_obj2(self, df: pd.DataFrame) -> pd.DataFrame:
-        # 1. 真正聚合的部分（仅对当天有数据的 level 才出现）
-        agg = (
+        return (
             df
             .groupby(['department', 'create_time', 'statistic_cycle', 'level'], as_index=False)
             .apply(self._calc, include_groups=False)
             .reset_index()
+            .assign(object_type='2')
         )
-
-        # 2. 构造全量骨架：所有 department / create_time / statistic_cycle 与 P0-P5 的笛卡尔积
-        levels = ['P0', 'P1', 'P2', 'P3', 'P4', 'P5']
-        skeleton = (
-            df[['department', 'create_time', 'statistic_cycle']]
-            .drop_duplicates()
-            .assign(key=1)  # 造一个临时列做笛卡尔积
-            .merge(pd.DataFrame({'level': levels, 'key': 1}), on='key')
-            .drop(columns='key')
-        )
-
-        # 3. 把骨架与聚合结果 merge，缺失的指标列填 “-”
-        full = (
-            skeleton
-            .merge(agg, on=['department', 'create_time', 'statistic_cycle', 'level'], how='left')
-            .fillna('-')  # 所有 NaN -> “-”
-            .assign(object_type='2')  # 补上固定列
-        )
-
-        return full
